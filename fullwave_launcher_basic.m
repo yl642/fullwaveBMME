@@ -70,3 +70,15 @@ imagesc(squeeze(p(end,:,:))), colorbar
 for i=1:2:size(p,1)
   imagesc(squeeze(p(i,:,:))', [-1 1]*p0), title(num2str(i)), drawnow
 end
+
+%% intensity map
+i = squeeze(sum(p.^2))';
+outy = (1:2:nY)*dY;
+outz = (1:2:nZ)*dZ;
+figure; imagesc(outy, outz, i); colorbar
+
+%% - 6dB
+i = db(i/max(i(:)));
+i = (i+6).*(i>-6);
+i = i - 6;
+figure; imagesc(outy, outz, i); colorbar
