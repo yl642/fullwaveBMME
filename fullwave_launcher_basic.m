@@ -27,13 +27,13 @@ cmap = ones(nY,nZ)*1540;   % speed of sound map (m/s)
 rhomap = ones(nY,nZ)*1000; % density map (kg/m^3)
 Amap = ones(nY,nZ)*0.0;    % attenuation map (dB/MHz/cm)
 boveramap = -2*ones(nY,nZ);    % nonlinearity map
-% cmap(round(nY/2)-1:round(nY/2)+1,round(nZ/1.3)-1:round(nZ/1.3)+1)=0.5*c0; % scatterer
+cmap(round(nY/2)-1:round(nY/2)+1,round(nZ/1.3)-1:round(nZ/1.3)+1)=0.5*c0; % scatterer
 % cmap(round(0.8e-2/dY)-1:round(0.8e-2/dY)+1,round(1.9e-2/dZ)-1:round(1.9e-2/dZ)+1)=0.5*c0; % scatterer @ (0.8, 1.9) cm
 % cmap(:,round(nZ/1.3):end)=0.6*c0; % surface
 imagesc(cmap'), axis equal, axis tight
 %%% Generate input coordinates %%%%%%%%%%%%%%%%%%%%%%%%%%%
 inmap = zeros(nY,nZ);
-% inmap(:,1) = ones(nY,1); inmap(:,2) = ones(nY,1); 
+inmap(:,1) = ones(nY,1); inmap(:,2) = ones(nY,1); 
 inmap(:,3) = ones(nY,1);
 imagesc(inmap'), axis equal, axis tight
 incoords = mapToCoords(inmap); % note zero indexing for compiled code
@@ -60,12 +60,13 @@ t = (0:nT-1)/nT*duration-ncycles/omega0*2*pi;
 % icmat=[icmat; exp(-(1.05*tmat*omega0/(ncycles*pi)).^(2*dur)).*sin((tmatsteering-2*dY/c0)*omega0)*p0];
 
 % steering
-% steering_dly = (0:nY-1)*dY*sind(phi_s)/c0;
-% steering_dly = repmat(steering_dly',1,nT);
-% tmatsteering = tmat + steering_dly;
-% icmat = exp(-(1.05*tmatsteering*omega0/(ncycles*pi)).^(2*dur)).*sin(tmatsteering*omega0)*p0;
-% icmat=[icmat; exp(-(1.05*tmatsteering*omega0/(ncycles*pi)).^(2*dur)).*sin((tmatsteering-dY/c0)*omega0)*p0];
-% icmat=[icmat; exp(-(1.05*tmatsteering*omega0/(ncycles*pi)).^(2*dur)).*sin((tmatsteering-2*dY/c0)*omega0)*p0];
+steering_dly = (0:nY-1)*dY*sind(phi_s)/c0;
+steering_dly = repmat(steering_dly',1,nT);
+tmat = repmat(t,size(incoords,1)/3,1);
+tmatsteering = tmat + steering_dly;
+icmat = exp(-(1.05*tmatsteering*omega0/(ncycles*pi)).^(2*dur)).*sin(tmatsteering*omega0)*p0;
+icmat=[icmat; exp(-(1.05*tmatsteering*omega0/(ncycles*pi)).^(2*dur)).*sin((tmatsteering-dY/c0)*omega0)*p0];
+icmat=[icmat; exp(-(1.05*tmatsteering*omega0/(ncycles*pi)).^(2*dur)).*sin((tmatsteering-2*dY/c0)*omega0)*p0];
 
 % steering and focusing
 % icvec = exp(-(1.05*t*omega0/(ncycles*pi)).^(2*dur)).*sin(t*omega0)*p0;
@@ -74,13 +75,13 @@ t = (0:nT-1)/nT*duration-ncycles/omega0*2*pi;
 % [icmat] = focusCoords (idy,idz,incoords,icvec,cfl);
 
 % load time reversal
-load('icmat2.mat');
-icmat = icmat'; icmat = icmat(:,end:-1:1);
-icmat = icmat/max(icmat(:))*p0;
+% load('icmat2.mat');
+% icmat = icmat'; icmat = icmat(:,end:-1:1);
+% icmat = icmat/max(icmat(:))*p0;
 imagesc(icmat)
 %%% Generate output coordinates %%%%%%%%%%%%%%%%%%%%%%%%%%
 outmap = zeros(nY,nZ);
-[modidy modidz] = meshgrid(1:2:nY,1:2:nZ);
+[modidy, modidz] = meshgrid(1:2:nY,1:2:nZ);
 outmap(modidy,modidz) = 1;
 imagesc(outmap'), axis equal, axis tight
 outcoords = mapToCoords(outmap);
